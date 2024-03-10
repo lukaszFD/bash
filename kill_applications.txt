@@ -1,0 +1,4 @@
+If you used nohup to launch the application, you can use the following command to stop the application:
+---------------------------------------------------------------------------------------------------------------------
+
+pkill -f nazwa_aplikacji.jar

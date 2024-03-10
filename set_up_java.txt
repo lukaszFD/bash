@@ -1,0 +1,14 @@
+To check if Java is installed, use the following command in the terminal:
+---------------------------------------------------------------------------------------------------------------------
+java -version
+
+
+If you get a "Permission denied" message when you try to run a java file from the bin folder, 
+you probably lack the proper permissions to execute the file. To fix this, you can try the following steps:
+---------------------------------------------------------------------------------------------------------------------
+
+1.Grant file permissions:
+chmod +x path/jdk/bin/java
+
+2. Try restarting:
+path/jdk/bin/java -version

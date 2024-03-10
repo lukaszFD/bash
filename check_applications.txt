@@ -1,0 +1,7 @@
+////
+To check on which user the JAR application is running on the Linux server, you can use the following command:
+---------------------------------------------------------------------------------------------------------------------
+
+ps aux | grep nazwa_aplikacji.jar
+
+ps aux | grep nazwa_aplikacji.jar | awk '{print $1}'

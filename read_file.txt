@@ -1,0 +1,20 @@
+In nano, you can scroll through and edit the file. To exit, press Ctrl + X, then confirm that you want to save your changes.
+---------------------------------------------------------------------------------------------------------------------
+
+nano path/file.log
+
+In vim, you can make changes, scroll and save. To exit edit mode, press Esc, then type :wq and press Enter.
+---------------------------------------------------------------------------------------------------------------------
+
+vim path/file.log
+
+In less you can scroll through the file. To exit, press the q key.
+---------------------------------------------------------------------------------------------------------------------
+
+less path/file.log
+
+cat will display the contents of the file. It can be useful for a quick preview.
+---------------------------------------------------------------------------------------------------------------------
+
+cat path/file.log
+
