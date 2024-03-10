@@ -1,0 +1,29 @@
+
+////
+Logowanie do pliku:
+Dodaj przekierowanie standardowego wyjścia i standardowego błędu do pliku, aby móc później sprawdzić logi aplikacji.
+---------------------------------------------------------------------------------------------------------------------
+
+nohup java -jar nazwa_aplikacji.jar > log.txt 2>&1 &
+
+////
+Zabezpiecz przed ponownym uruchomieniem:
+Aby uniknąć przypadkowego wielokrotnego uruchomienia, możesz dodać sprawdzenie, czy proces już działa przed jego ponownym uruchomieniem.
+---------------------------------------------------------------------------------------------------------------------
+
+if ! pgrep -f "nazwa_aplikacji.jar" > /dev/null; then
+    nohup java -jar nazwa_aplikacji.jar > log.txt 2>&1 &
+fi
+
+lub bez pliku logu
+
+if ! pgrep -f "nazwa_aplikacji.jar" > /dev/null; then
+    nohup java -jar nazwa_aplikacji.jar &
+fi
+
+////
+Ustalony Katalog Roboczy:
+Możesz ustawić katalog roboczy, w którym uruchomiona jest aplikacja.
+---------------------------------------------------------------------------------------------------------------------
+
+nohup java -jar nazwa_aplikacji.jar > log.txt 2>&1 & cd /sciezka/do/katalogu
