@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Ścieżka do folderu, w którym będą tworzone nowe podfoldery
+folder_path="/root/app/shared.folders"
+
+# Nazwa nowego podfolderu (rok-miesiąc)
+new_folder_name="$(date +'%Y-%m')"
+
+# Pełna ścieżka do nowego podfolderu
+new_folder="$folder_path/$new_folder_name"
+
+# Sprawdzenie, czy podfolder już istnieje
+if [ ! -d "$new_folder" ]; then
+    # Tworzenie nowego podfolderu
+    mkdir "$new_folder"
+    echo "Utworzono nowy podfolder: $new_folder"
+    
+    # Nadanie odpowiednich uprawnień dla użytkownika "ftp"
+    chown ftp:ftp "$new_folder"
+    chmod 755 "$new_folder"  # Uprawnienia do czytania i wykonywania dla użytkownika "ftp"
+    chmod g+w "$new_folder"  # Uprawnienia do zapisu dla grupy
+    chmod o-rwx "$new_folder"  # Usunięcie uprawnień dla innych użytkowników
+    echo "Nadano odpowiednie uprawnienia dla użytkownika ftp."
+else
+    echo "Podfolder $new_folder już istnieje."
+fi
+
+
+-------------------------------------------------------------------------------------------------
+
+Należy umieścić ten skrypt w pliku, np. "create_new_folder.sh", a następnie nadać mu odpowiednie uprawnienia wykonywania za pomocą polecenia chmod +x create_new_folder.sh.
+
+Następnie, aby dodać to zadanie do CRON-a, można otworzyć plik CRON-a za pomocą polecenia crontab -e i dodać następującą linię:
+
+0 0 21 * * /ścieżka/do/skryptu/create_new_folder.sh
