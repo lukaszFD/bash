@@ -1,3 +1,14 @@
+#Explanation of Key Steps:
+#1. Date Variables:
+#TODAY and YESTERDAY store today's and yesterday's dates in yyyyMMdd format.
+#2. Filename Processing:
+#The if condition checks if the filename contains yyyyMMdd.
+#The sed command replaces yyyyMMdd with the correct date and removes _0 or _1 from the filename.
+#3. Copying Files:
+#The cp command copies files to the destination directory with the new filename or retains the original name if no changes #are needed.
+
+
+
 #!/bin/bash
 
 # Paths for source and destination directories
