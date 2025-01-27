@@ -20,6 +20,15 @@ TODAY=$(date +"%Y%m%d")
 # Yesterday's date in yyyyMMdd format
 YESTERDAY=$(date -d "yesterday" +"%Y%m%d")
 
+# Today's month in MMM format (uppercase)
+TODAY_MMM=$(date +"%b" | tr '[:lower:]' '[:upper:]')
+# Yesterday's month in MMM format (uppercase)
+YESTERDAY_MMM=$(date -d "yesterday" +"%b" | tr '[:lower:]' '[:upper:]')
+# Today's year
+TODAY_YEAR=$(date +"%Y")
+# Yesterday's year
+YESTERDAY_YEAR=$(date -d "yesterday" +"%Y")
+
 # Iterate through all files and directories in the source directory
 for entry in "$SRC_DIR"*; do
   # Get the basename of the file or directory
@@ -33,6 +42,18 @@ for entry in "$SRC_DIR"*; do
     elif [[ $name == *"_1"* ]]; then
       new_name=$(echo "$name" | sed -E "s/yyyyMMdd/${YESTERDAY}/" | sed -E "s/_1//")
     fi
+  elif [[ $name == *"Test yyyy.MM.dd_0.xlsx" ]]; then
+    # Handle Test yyyy.MM.dd_0.xlsx pattern for today
+    new_name=$(echo "$name" | sed -E "s/Test yyyy\.MM\.dd/${TODAY}/" | sed -E "s/_0//")
+  elif [[ $name == *"Test yyyy.MM.dd_1.xlsx" ]]; then
+    # Handle Test yyyy.MM.dd_1.xlsx pattern for yesterday
+    new_name=$(echo "$name" | sed -E "s/Test yyyy\.MM\.dd/${YESTERDAY}/" | sed -E "s/_1//")
+  elif [[ $name == *"Test_MMM_yyyy_0.xlsx" ]]; then
+    # Handle Test_MMM_yyyy_0.xlsx pattern for today
+    new_name=$(echo "$name" | sed -E "s/Test_MMM_yyyy/Test_${TODAY_MMM}_${TODAY_YEAR}/" | sed -E "s/_0//")
+  elif [[ $name == *"Test_MMM_yyyy_1.xlsx" ]]; then
+    # Handle Test_MMM_yyyy_1.xlsx pattern for yesterday
+    new_name=$(echo "$name" | sed -E "s/Test_MMM_yyyy/Test_${YESTERDAY_MMM}_${YESTERDAY_YEAR}/" | sed -E "s/_1//")
   else
     # For names without 'yyyyMMdd', keep the original name
     new_name="$name"
