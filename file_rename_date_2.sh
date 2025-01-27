@@ -29,9 +29,9 @@ for entry in "$SRC_DIR"*; do
   if [[ $name == *"yyyyMMdd"* ]]; then
     # Replace date placeholder and remove _0 or _1 suffix
     if [[ $name == *"_0"* ]]; then
-      new_name=$(echo "$name" | sed -E "s/yyyyMMdd/_${TODAY}/" | sed -E "s/_0//")
+      new_name=$(echo "$name" | sed -E "s/yyyyMMdd/${TODAY}/" | sed -E "s/_0//")
     elif [[ $name == *"_1"* ]]; then
-      new_name=$(echo "$name" | sed -E "s/yyyyMMdd/_${YESTERDAY}/" | sed -E "s/_1//")
+      new_name=$(echo "$name" | sed -E "s/yyyyMMdd/${YESTERDAY}/" | sed -E "s/_1//")
     fi
   else
     # For names without 'yyyyMMdd', keep the original name
@@ -44,7 +44,6 @@ for entry in "$SRC_DIR"*; do
   else
     cp "$entry" "$DEST_DIR$new_name"
   fi
-
 done
 
 echo "File copying and renaming completed!"
@@ -63,8 +62,19 @@ while IFS="," read -r type name extension; do
   name=$(echo "$name" | tr -d '"')
   extension=$(echo "$extension" | tr -d '"')
 
+  # Update name in memory to reflect renaming logic
+  if [[ $name == *"yyyyMMdd"* ]]; then
+    if [[ $name == *"_0"* ]]; then
+      updated_name=$(echo "$name" | sed -E "s/yyyyMMdd/${TODAY}/" | sed -E "s/_0//")
+    elif [[ $name == *"_1"* ]]; then
+      updated_name=$(echo "$name" | sed -E "s/yyyyMMdd/${YESTERDAY}/" | sed -E "s/_1//")
+    fi
+  else
+    updated_name="$name"
+  fi
+
   # Identify the source path in DEST_DIR
-  source_path="$DEST_DIR$name"
+  source_path="$DEST_DIR$updated_name"
 
   # Perform compression based on type
   if [[ "$type" == "file" && -f "$source_path" ]]; then
