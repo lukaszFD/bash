@@ -20,29 +20,58 @@ TODAY=$(date +"%Y%m%d")
 # Yesterday's date in yyyyMMdd format
 YESTERDAY=$(date -d "yesterday" +"%Y%m%d")
 
-# Iterate through all files in the source directory
-for file in "$SRC_DIR"*; do
-  # Get the filename without the directory path
-  filename=$(basename "$file")
-  
-  # Check if the filename contains 'yyyyMMdd'
-  if [[ $filename == *"yyyyMMdd"* ]]; then
+# Iterate through all files and directories in the source directory
+for entry in "$SRC_DIR"*; do
+  # Get the basename of the file or directory
+  name=$(basename "$entry")
+
+  # Check if the name contains 'yyyyMMdd'
+  if [[ $name == *"yyyyMMdd"* ]]; then
     # Replace date placeholder and remove _0 or _1 suffix
-    if [[ $filename == *"_0"* ]]; then
-      new_filename=$(echo "$filename" | sed -E "s/yyyyMMdd/_${TODAY}/" | sed -E "s/_0//")
-    elif [[ $filename == *"_1"* ]]; then
-      new_filename=$(echo "$filename" | sed -E "s/yyyyMMdd/_${YESTERDAY}/" | sed -E "s/_1//")
-    else
-      # If neither _0 nor _1 is found, keep the filename unchanged
-      new_filename="$filename"
+    if [[ $name == *"_0"* ]]; then
+      new_name=$(echo "$name" | sed -E "s/yyyyMMdd/_${TODAY}/" | sed -E "s/_0//")
+    elif [[ $name == *"_1"* ]]; then
+      new_name=$(echo "$name" | sed -E "s/yyyyMMdd/_${YESTERDAY}/" | sed -E "s/_1//")
     fi
   else
-    # For files without 'yyyyMMdd', keep the original filename
-    new_filename="$filename"
+    # For names without 'yyyyMMdd', keep the original name
+    new_name="$name"
   fi
 
-  # Copy the file to the destination directory with the updated name
-  cp "$file" "$DEST_DIR$new_filename"
+  # Check if it's a file or directory and copy to the destination with the updated name
+  if [[ -d "$entry" ]]; then
+    cp -r "$entry" "$DEST_DIR$new_name"
+  else
+    cp "$entry" "$DEST_DIR$new_name"
+  fi
+
 done
 
 echo "File copying and renaming completed!"
+
+# Compression logic based on compression_list.csv
+COMPRESSION_LIST="compression_list.csv"
+
+while IFS="," read -r type name extension; do
+  # Skip header row
+  if [[ "$type" == "Type" ]]; then
+    continue
+  fi
+
+  # Remove quotes from fields
+  type=$(echo "$type" | tr -d '"')
+  name=$(echo "$name" | tr -d '"')
+  extension=$(echo "$extension" | tr -d '"')
+
+  # Identify the source path in DEST_DIR
+  source_path="$DEST_DIR$name"
+
+  # Perform compression based on type
+  if [[ "$type" == "file" && -f "$source_path" ]]; then
+    zip -j "$source_path.$extension" "$source_path" && rm "$source_path"
+  elif [[ "$type" == "dir" && -d "$source_path" ]]; then
+    7z a "$source_path.$extension" "$source_path" && rm -r "$source_path"
+  fi
+done < "$COMPRESSION_LIST"
+
+echo "Compression completed!"
