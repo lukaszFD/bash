@@ -22,12 +22,16 @@ YESTERDAY=$(date -d "yesterday" +"%Y%m%d")
 
 # Today's month in MMM format (uppercase)
 TODAY_MMM=$(date +"%b" | tr '[:lower:]' '[:upper:]')
-# Yesterday's month in MMM format (uppercase)
-YESTERDAY_MMM=$(date -d "yesterday" +"%b" | tr '[:lower:]' '[:upper:]')
 # Today's year
 TODAY_YEAR=$(date +"%Y")
-# Yesterday's year
-YESTERDAY_YEAR=$(date -d "yesterday" +"%Y")
+
+# Calculate the previous month and adjust the year if needed
+PREVIOUS_MONTH=$(date -d "$(date +%Y-%m-15) -1 month" +"%b" | tr '[:lower:]' '[:upper:]')
+PREVIOUS_MONTH_YEAR=$(date -d "$(date +%Y-%m-15) -1 month" +"%Y")
+
+# Set YESTERDAY_MMM and YESTERDAY_YEAR
+YESTERDAY_MMM=$PREVIOUS_MONTH
+YESTERDAY_YEAR=$PREVIOUS_MONTH_YEAR
 
 # Iterate through all files and directories in the source directory
 for entry in "$SRC_DIR"*; do
