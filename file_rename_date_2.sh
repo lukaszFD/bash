@@ -33,61 +33,72 @@ PREVIOUS_MONTH_YEAR=$(date -d "$(date +%Y-%m-15) -1 month" +"%Y")
 YESTERDAY_MMM=$PREVIOUS_MONTH
 YESTERDAY_YEAR=$PREVIOUS_MONTH_YEAR
 
+# Create unique log file name
+LOG_FILE="file_rename_$(date +"%Y%m%d%H%M%S%3N").log"
+LOG_PATH="$DEST_DIR$LOG_FILE"
+
+# Log a message to the log file
+log_message() {
+  local level="$1"
+  local message="$2"
+  echo "[$(date +"%Y-%m-%d %H:%M:%S.%3N")] [$level] $message" >> "$LOG_PATH"
+}
+
+log_message "INFO" "Script execution started."
+
 # Iterate through all files and directories in the source directory
 for entry in "$SRC_DIR"*; do
-  # Get the basename of the file or directory
   name=$(basename "$entry")
 
-  # Check if the name contains 'yyyyMMdd'
   if [[ $name == *"yyyyMMdd"* ]]; then
-    # Replace date placeholder and remove _0 or _1 suffix
     if [[ $name == *"_0"* ]]; then
       new_name=$(echo "$name" | sed -E "s/yyyyMMdd/${TODAY}/" | sed -E "s/_0//")
     elif [[ $name == *"_1"* ]]; then
       new_name=$(echo "$name" | sed -E "s/yyyyMMdd/${YESTERDAY}/" | sed -E "s/_1//")
     fi
   elif [[ $name == *"Test yyyy.MM.dd_0.xlsx" ]]; then
-    # Handle Test yyyy.MM.dd_0.xlsx pattern for today
     new_name=$(echo "$name" | sed -E "s/Test yyyy\.MM\.dd/${TODAY}/" | sed -E "s/_0//")
   elif [[ $name == *"Test yyyy.MM.dd_1.xlsx" ]]; then
-    # Handle Test yyyy.MM.dd_1.xlsx pattern for yesterday
     new_name=$(echo "$name" | sed -E "s/Test yyyy\.MM\.dd/${YESTERDAY}/" | sed -E "s/_1//")
   elif [[ $name == *"Test_MMM_yyyy_0.xlsx" ]]; then
-    # Handle Test_MMM_yyyy_0.xlsx pattern for today
     new_name=$(echo "$name" | sed -E "s/Test_MMM_yyyy/Test_${TODAY_MMM}_${TODAY_YEAR}/" | sed -E "s/_0//")
   elif [[ $name == *"Test_MMM_yyyy_1.xlsx" ]]; then
-    # Handle Test_MMM_yyyy_1.xlsx pattern for yesterday
     new_name=$(echo "$name" | sed -E "s/Test_MMM_yyyy/Test_${YESTERDAY_MMM}_${YESTERDAY_YEAR}/" | sed -E "s/_1//")
   else
-    # For names without 'yyyyMMdd', keep the original name
     new_name="$name"
   fi
 
-  # Check if it's a file or directory and copy to the destination with the updated name
   if [[ -d "$entry" ]]; then
     cp -r "$entry" "$DEST_DIR$new_name"
+    if [[ $? -eq 0 ]]; then
+      log_message "INFO" "Directory '$entry' copied to '$DEST_DIR$new_name'."
+    else
+      log_message "ERROR" "Failed to copy directory '$entry' to '$DEST_DIR$new_name'."
+    fi
   else
     cp "$entry" "$DEST_DIR$new_name"
+    if [[ $? -eq 0 ]]; then
+      log_message "INFO" "File '$entry' copied to '$DEST_DIR$new_name'."
+    else
+      log_message "ERROR" "Failed to copy file '$entry' to '$DEST_DIR$new_name'."
+    fi
   fi
-done
 
-echo "File copying and renaming completed!"
+  log_message "INFO" "Processing complete for: $entry."
+done
 
 # Compression logic based on compression_list.csv
 COMPRESSION_LIST="compression_list.csv"
 
 while IFS="," read -r type name extension; do
-  # Skip header row
   if [[ "$type" == "Type" ]]; then
     continue
   fi
 
-  # Remove quotes from fields
   type=$(echo "$type" | tr -d '"')
   name=$(echo "$name" | tr -d '"')
   extension=$(echo "$extension" | tr -d '"')
 
-  # Update name in memory to reflect renaming logic
   if [[ $name == *"yyyyMMdd"* ]]; then
     if [[ $name == *"_0"* ]]; then
       updated_name=$(echo "$name" | sed -E "s/yyyyMMdd/${TODAY}/" | sed -E "s/_0//")
@@ -98,17 +109,26 @@ while IFS="," read -r type name extension; do
     updated_name="$name"
   fi
 
-  # Identify the source path in DEST_DIR
   source_path="$DEST_DIR$updated_name"
 
-	# Perform compression based on type
-	if [[ "$type" == "file" && -f "$source_path" ]]; then
-	  # Remove file extension before creating zip
-	  base_name=$(basename "$source_path" | sed -E 's/\.[a-zA-Z0-9]+$//')
-	  zip -j "$DEST_DIR${base_name}.$extension" "$source_path" && rm "$source_path"
-	elif [[ "$type" == "dir" && -d "$source_path" ]]; then
-	  7z a "$source_path.$extension" "$source_path" && rm -r "$source_path"
-	fi
+  if [[ "$type" == "file" && -f "$source_path" ]]; then
+    base_name=$(basename "$source_path" | sed -E 's/\.[a-zA-Z0-9]+$//')
+    zip -j "$DEST_DIR${base_name}.$extension" "$source_path" && rm "$source_path"
+    if [[ $? -eq 0 ]]; then
+      log_message "INFO" "File '$source_path' compressed to '$DEST_DIR${base_name}.$extension'."
+    else
+      log_message "ERROR" "Failed to compress file '$source_path'."
+    fi
+  elif [[ "$type" == "dir" && -d "$source_path" ]]; then
+    7z a "$source_path.$extension" "$source_path" && rm -r "$source_path"
+    if [[ $? -eq 0 ]]; then
+      log_message "INFO" "Directory '$source_path' compressed to '$source_path.$extension'."
+    else
+      log_message "ERROR" "Failed to compress directory '$source_path'."
+    fi
+  fi
+
 done < "$COMPRESSION_LIST"
 
-echo "Compression completed!"
+log_message "INFO" "Compression completed."
+log_message "INFO" "Script execution completed."
