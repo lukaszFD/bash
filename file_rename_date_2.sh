@@ -101,12 +101,14 @@ while IFS="," read -r type name extension; do
   # Identify the source path in DEST_DIR
   source_path="$DEST_DIR$updated_name"
 
-  # Perform compression based on type
-  if [[ "$type" == "file" && -f "$source_path" ]]; then
-    zip -j "$source_path.$extension" "$source_path" && rm "$source_path"
-  elif [[ "$type" == "dir" && -d "$source_path" ]]; then
-    7z a "$source_path.$extension" "$source_path" && rm -r "$source_path"
-  fi
+	# Perform compression based on type
+	if [[ "$type" == "file" && -f "$source_path" ]]; then
+	  # Remove file extension before creating zip
+	  base_name=$(basename "$source_path" | sed -E 's/\.[a-zA-Z0-9]+$//')
+	  zip -j "$DEST_DIR${base_name}.$extension" "$source_path" && rm "$source_path"
+	elif [[ "$type" == "dir" && -d "$source_path" ]]; then
+	  7z a "$source_path.$extension" "$source_path" && rm -r "$source_path"
+	fi
 done < "$COMPRESSION_LIST"
 
 echo "Compression completed!"
